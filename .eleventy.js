@@ -5,6 +5,8 @@ const HighlightPairedShortcode = require("./src/HighlightPairedShortcode");
 const LiquidHighlightTag = require("./src/LiquidHighlightTag");
 const CharacterWrap = require("./src/CharacterWrap");
 const markdownPrismJs = require("./src/markdownSyntaxHighlightOptions");
+const markdownInlinePrismJs = require("./src/markdownInlineSyntaxHighlight")
+// const markdownIt = require("markdown-it")
 
 module.exports = {
   initArguments: { Prism },
@@ -20,7 +22,9 @@ module.exports = {
       // eligible to change the default to \n in a new major version.
       lineSeparator: "<br>",
       preAttributes: {},
-      codeAttributes: {}
+      codeAttributes: {},
+      // inlineMarkdown: false, TODO
+      aggressiveEscaping: false
     }, options);
 
     // TODO hbs?
@@ -43,6 +47,13 @@ module.exports = {
     if( hasTemplateFormat(options.templateFormats, "md") ) {
       // ```js/0,2-3
       eleventyConfig.addMarkdownHighlighter(markdownPrismJs(options));
+
+      //TODO how to add markdown-it extensions from inside an eleventy plugin
+      // without clobbering any existing markdown-it plugins and options?
+      // if (options.inlineMarkdown) {
+      //   const markdownLib = markdownIt({}).use(markdownInlinePrismJs, options)
+      //   eleventyConfig.setLibrary("md", markdownLib)
+      // }
     }
 
     if( hasTemplateFormat(options.templateFormats, "11ty.js") ) {
@@ -55,5 +66,6 @@ module.exports = {
   }
 };
 
+module.exports.markdownInlinePrismJs = markdownInlinePrismJs
 module.exports.pairedShortcode = HighlightPairedShortcode;
 module.exports.CharacterWrap = CharacterWrap;

@@ -11,10 +11,17 @@ module.exports = function (options = {}) {
   const preAttributes = getAttributes(options.preAttributes);
   const codeAttributes = getAttributes(options.codeAttributes);
 
-  return function(str, language) {
+  return function(str, language, isInline = false) {
     if(!language) {
       // empty string means defer to the upstream escaping code built into markdown lib.
-      return "";
+
+      if (isInline) {
+        // Returning "" not working for inline for some reason
+        return `<code ${codeAttributes}>${md.utils.escapeHtml(str)}</code>`
+      } else {
+        // Works for fenced
+        return ""
+      }
     }
 
     let split = language.split("/");
@@ -49,28 +56,43 @@ module.exports = function (options = {}) {
       if(options.aggressiveEscaping && needsExtraEscaping) {
         const dom = new JSDOM(html);
 
-        // Explicitly escape " so output matches markdown-it
-        dom.window.document.querySelectorAll("*").forEach((node) => {
-          node.textContent = node.textContent.replaceAll('"', "&quot;");
-        });
+        // TODO seeing strange behavior with DOM manipulation inline
+        if(!isInline) {
+          // Explicitly escape " so output matches markdown-it
+          dom.window.document.querySelectorAll("*").forEach((node) => {
+            node.textContent = node.textContent.replaceAll('"', "&quot;");
+          });
+        }
+        
+        // Get rid of any wrapping from JSDOM... seems to vary
+        // based on Prism's output
+        const body = dom.window.document.querySelector("body");
 
-        // Serialize escapes >
-        html = dom.serialize();
+        if (body) {
+          html = body.innerHTML;
+        }
+        else {
+          html = dom.window.document.querySelector("html").innerHTML;
+        }
       }
     }
 
-    let hasHighlightNumbers = split.length > 0;
-    let highlights = new HighlightLinesGroup(split.join("/"), "/");
-    let lines = html.split("\n").slice(0, -1); // The last line is empty.
+    if(isInline) {
+      return `<code class="language-${language}"${codeAttributes}>${html}</code>`;
+    } else {
+      let hasHighlightNumbers = split.length > 0;
+      let highlights = new HighlightLinesGroup(split.join("/"), "/");
+      let lines = html.split("\n").slice(0, -1); // The last line is empty.
 
-    lines = lines.map(function(line, j) {
-      if(options.alwaysWrapLineHighlights || hasHighlightNumbers) {
-        let lineContent = highlights.getLineMarkup(j, line);
-        return lineContent;
-      }
-      return line;
-    });
+      lines = lines.map(function(line, j) {
+        if(options.alwaysWrapLineHighlights || hasHighlightNumbers) {
+          let lineContent = highlights.getLineMarkup(j, line);
+          return lineContent;
+        }
+        return line;
+      });
 
-    return `<pre class="language-${language}"${preAttributes}><code class="language-${language}"${codeAttributes}>${lines.join(options.lineSeparator || "<br>")}</code></pre>`;
+      return `<pre class="language-${language}"${preAttributes}><code class="language-${language}"${codeAttributes}>${lines.join(options.lineSeparator || "<br>")}</code></pre>`;
+    }
   };
 };
