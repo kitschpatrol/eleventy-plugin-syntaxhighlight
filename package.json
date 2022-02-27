@@ -44,6 +44,7 @@
   },
   "dependencies": {
     "linkedom": "^0.13.2",
+    "jsdom": "^19.0.0",
     "prismjs": "^1.26.0"
   },
   "ava": {
