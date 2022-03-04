@@ -3,9 +3,7 @@ const PrismLoader = require("./PrismLoader");
 const HighlightLinesGroup = require("./HighlightLinesGroup");
 const getAttributes = require("./getAttributes");
 const md = require("markdown-it")();
-
-// TODO use existing linkedom dependency instead and remove jsdom
-const { JSDOM } = require("jsdom");
+const {parseHTML} = require("linkedom");
 
 module.exports = function (options = {}) {
   const preAttributes = getAttributes(options.preAttributes);
@@ -43,37 +41,36 @@ module.exports = function (options = {}) {
 
       // Overview of what escapes what...
 
-      // escape        markdown-it  prism   JSDOM.serialize()
-      // & to &amp;    Yes          Yes     ?
-      // < to &lt;     Yes          Yes     Yes
-      // > to &gt;     Yes          No      Yes
+      // escape        markdown-it  prism   linkedom toString()
+      // & to &amp;    Yes          Yes     Yes
+      // < to &lt;     Yes          Yes     Yes?
+      // > to &gt;     Yes          No      Yes?
       // " to &quot    Yes          No      No
 
       const needsExtraEscaping = options.aggressiveEscaping && /[">]/.test(str);
 
       html = Prism.highlight(str, PrismLoader(language), language);
 
-      if(options.aggressiveEscaping && needsExtraEscaping) {
-        const dom = new JSDOM(html);
+      if (options.aggressiveEscaping && needsExtraEscaping) {
+        const window = parseHTML(html);
 
-        // TODO seeing strange behavior with DOM manipulation inline
-        if(!isInline) {
-          // Explicitly escape " so output matches markdown-it
-          dom.window.document.querySelectorAll("*").forEach((node) => {
-            node.textContent = node.textContent.replaceAll('"', "&quot;");
-          });
-        }
-        
-        // Get rid of any wrapping from JSDOM... seems to vary
-        // based on Prism's output
-        const body = dom.window.document.querySelector("body");
+        // TODO fix terrible kludge to work-around innerHTML ampersand-escaping
+        // This section tries to escape quotes from prism's output for
+        // consistency with markdown-it innerHTML might be returning escaped
+        // html resulting in double-escaped ampersands, so temporarily use a
+        // different string to represent quotes for replacement after we've
+        // grabbed the output from linkedom.
+        const quoteReplacementKey = "BduTBc8sKjGXgUW3VzTCMdqLF3BmnPqD";
+        window.document.querySelectorAll("*").forEach((node) => {
+          node.textContent = node.textContent.replaceAll(
+            '"',
+            quoteReplacementKey
+          );
+        });
 
-        if (body) {
-          html = body.innerHTML;
-        }
-        else {
-          html = dom.window.document.querySelector("html").innerHTML;
-        }
+        html = window.document
+          .toString()
+          .replaceAll(quoteReplacementKey, "&quot;");
       }
     }
 

@@ -43,9 +43,8 @@
     "markdown-it": "^12.3.2"
   },
   "dependencies": {
-    "linkedom": "^0.13.2",
-    "jsdom": "^19.0.0",
-    "prismjs": "^1.26.0"
+    "linkedom": "^0.14.3",
+    "prismjs": "^1.27.0"
   },
   "ava": {
     "environmentVariables": {},
