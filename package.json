@@ -6,14 +6,19 @@
     "access": "public"
   },
   "main": ".eleventy.js",
+  "engines": {
+		"node": ">=16.0.0",
+		"pnpm": ">=9.0.0"
+	},
+	"packageManager": "pnpm@9.9.0",
   "scripts": {
-    "test": "npx ava",
-    "demo": "npx @11ty/eleventy --input=demo --output=demo/_site --config=demo/eleventy-config.js",
-    "start": "npx @11ty/eleventy --input=demo --output=demo/_site --config=demo/eleventy-config.js --serve"
+    "test": "pnpm dlx ava",
+    "demo": "pnpm dlx @11ty/eleventy --input=demo --output=demo/_site --config=demo/eleventy-config.js",
+    "start": "pnpm dlx @11ty/eleventy --input=demo --output=demo/_site --config=demo/eleventy-config.js --serve"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/11ty/eleventy-plugin-syntaxhighlight.git"
+    "url": "git+https://github.com/kitschpatrol/eleventy-plugin-syntaxhighlight.git"
   },
   "funding": {
     "type": "opencollective",
