@@ -2,9 +2,6 @@
   "name": "@11ty/eleventy-plugin-syntaxhighlight",
   "version": "4.0.0",
   "description": "Prism.js based syntax highlighting for Markdown, Liquid, Nunjucks, and 11ty.js templates.",
-  "publishConfig": {
-    "access": "public"
-  },
   "main": ".eleventy.js",
   "engines": {
 		"node": ">=16.0.0",
